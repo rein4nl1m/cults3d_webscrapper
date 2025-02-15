@@ -14,9 +14,9 @@ class CultsItem {
   factory CultsItem.fromMap(Map<String, dynamic> map) {
     return CultsItem(
       title: map['title'] as String,
-      views: map['views'] as int,
-      likes: map['likes'] as int,
-      downloads: map['downloads'] as int,
+      views: map['views'] as int? ?? 0,
+      likes: map['likes'] as int? ?? 0,
+      downloads: map['downloads'] as int? ?? 0,
     );
   }
 
@@ -63,19 +63,5 @@ class CultsItem {
         views.hashCode ^
         likes.hashCode ^
         downloads.hashCode;
-  }
-
-  CultsItem copyWith({
-    String? title,
-    int? views,
-    int? likes,
-    int? downloads,
-  }) {
-    return CultsItem(
-      title: title ?? this.title,
-      views: views ?? this.views,
-      likes: likes ?? this.likes,
-      downloads: downloads ?? this.downloads,
-    );
   }
 }

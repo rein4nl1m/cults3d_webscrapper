@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_relative_lib_imports
 import 'package:cults3d_webscrapper/models/cults_item.dart';
 
-import '../lib/cults3d_items_webscrapper.dart' as item;
+import '../lib/cults3d_items_webscrapper.dart' as items;
 import '../lib/cults3d_collection_webscrapper.dart' as collection;
 
 final _baseUrl = "https://cults3d.com";
@@ -16,7 +16,7 @@ void main(List<String> arguments) async {
   final url = _baseUrl + _path; //arguments.first;
 
   collection.scrapeCollectionCults3D(url).then((itemUrls) async {
-    item.scrapeItemsCults3D(itemUrls).then((items) {
+    items.scrapeItemsCults3D(itemUrls).then((items) {
       print('\nPer Views');
       printTop3Items(items, 'views');
       print('\nPer Likes');

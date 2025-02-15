@@ -15,7 +15,8 @@ final List<CultsUrlItem> _urls = [
 ];
 
 Future<List<CultsItem>> scrapeItemsCults3D(
-    List<CultsUrlItem> urlItemsList) async {
+  List<CultsUrlItem> urlItemsList,
+) async {
   final urls = urlItemsList.map((e) => e.url).toList();
   final responses = await getPages(urls);
 

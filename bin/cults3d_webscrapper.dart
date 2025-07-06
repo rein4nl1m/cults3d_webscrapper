@@ -7,16 +7,6 @@ import '../lib/cults3d_collection_webscrapper.dart' as collection;
 final _baseUrl = "https://cults3d.com";
 final _path = "/en/design-collections/ManabunLab/low-poly-magnet-puzzle";
 
-void printTopNItems(List<CultsItem> items, String param, [int range = 5]) {
-  if (param == "price") {
-    items.sort((a, b) =>
-        (a.toMap()[param] as double).compareTo(b.toMap()[param] as double));
-  } else {
-    items.sort((a, b) => b.toMap()[param] - a.toMap()[param]);
-  }
-  items.take(range).forEach((e) => print(e.toStringPerParam(param)));
-}
-
 void main(List<String> arguments) async {
   String url = "";
   if (arguments.isNotEmpty) {
@@ -28,30 +18,66 @@ void main(List<String> arguments) async {
   collection.scrapeCollectionCults3D(url).then((itemUrls) async {
     items.scrapeItemsCults3D(itemUrls).then((items) {
       print('\nPer Views');
-      printTopNItems(items, 'views');
+      printTopNItems(items: items, param: 'views');
       print('\nPer Likes');
-      printTopNItems(items, 'likes');
+      printTopNItems(items: items, param: 'likes');
       print('\nPer Downloads');
-      printTopNItems(items, 'downloads');
+      printTopNItems(items: items, param: 'downloads');
       print('\nPer Price');
-      printTopNItems(items, 'price');
+      printTopNItems(items: items, param: 'price', range: 10);
 
-      print('\nTop 5 Per All (downloads > views > likes > price)');
-      items.sort(
-        (a, b) {
-          int downloadsComparison = b.downloads.compareTo(a.downloads);
-          if (downloadsComparison != 0) return downloadsComparison;
-
-          int viewsComparison = b.views.compareTo(a.views);
-          if (viewsComparison != 0) return viewsComparison;
-
-          int likesComparison = b.likes.compareTo(a.likes);
-          if (likesComparison != 0) return likesComparison;
-
-          return a.price.compareTo(b.price);
-        },
-      );
-      items.take(5).forEach(print);
+      getTopN(items: items, range: 10);
     });
   });
+}
+
+void printTopNItems(
+    {required List<CultsItem> items, required String param, int range = 5}) {
+  if (param == "price") {
+    items.sort((a, b) =>
+        (a.toMap()[param] as double).compareTo(b.toMap()[param] as double));
+  } else {
+    items.sort((a, b) => b.toMap()[param] - a.toMap()[param]);
+  }
+
+  final itemsInRange = items.take(range);
+  for (var e in itemsInRange) {
+    print(e.toStringPerParam(param));
+  }
+
+  if (param == "price") {
+    final total = itemsInRange
+        .map((e) => e.price)
+        .reduce((value, element) => value + element)
+        .ceilToDouble();
+
+    print('Total: R\$ $total');
+  }
+}
+
+void getTopN({required List<CultsItem> items, int range = 5}) {
+  print('\nTop $range Per All (downloads > views > likes > price)');
+  items.sort(
+    (a, b) {
+      int downloadsComparison = b.downloads.compareTo(a.downloads);
+      if (downloadsComparison != 0) return downloadsComparison;
+
+      int viewsComparison = b.views.compareTo(a.views);
+      if (viewsComparison != 0) return viewsComparison;
+
+      int likesComparison = b.likes.compareTo(a.likes);
+      if (likesComparison != 0) return likesComparison;
+
+      return a.price.compareTo(b.price);
+    },
+  );
+  final top5 = items.take(range);
+  top5.forEach(print);
+
+  final total = top5
+      .map((e) => e.price)
+      .reduce((value, elemnet) => value + elemnet)
+      .ceilToDouble();
+
+  print('Total: R\$ $total');
 }

@@ -18,7 +18,9 @@ Future<List<CultsItem>> scrapeItemsCults3D(
   List<CultsUrlItem> urlItemsList,
 ) async {
   final urls = urlItemsList.map((e) => e.url).toList();
-  final responses = await getPages(urls);
+  final responses = await Isolate.run<List<http.Response>>(
+    () => getPages(urls),
+  );
 
   if (responses.isEmpty) {
     print('No data');
@@ -32,8 +34,18 @@ Future<List<CultsItem>> scrapeItemsCults3D(
       if (response.statusCode == 200) {
         final title = response.request!.url.origin + response.request!.url.path;
         Map<String, dynamic> item = {'title': title};
+        final document = await Isolate.run<Document>(
+          () => html.parse(response.body),
+        );
 
-        final document = await Isolate.run(() => html.parse(response.body));
+        final productInfo = document.querySelector(
+          '.product__infos .button_to .btn-third',
+        );
+        if (productInfo != null) {
+          final price = extractNumericValue(productInfo.text, hasDecimal: true);
+          item['price'] = price;
+        }
+
         final docs = document.getElementsByClassName('icon-and-text');
 
         for (String type in ['views', 'likes', 'downloads']) {
@@ -62,25 +74,30 @@ Future<List<CultsItem>> scrapeItemsCults3D(
   return items;
 }
 
-int extractNumericValue(String text) {
+num extractNumericValue(String text, {bool hasDecimal = false}) {
   final match = RegExp(r'[\d.]+').firstMatch(text);
-  if (match == null) return 0;
+  if (match == null) return hasDecimal ? 0.0 : 0;
 
-  late double number;
   final list = text.split(" ");
   final value = list.first;
 
-  final suffix = value[value.length - 1];
+  final lastChar = value[value.length - 1];
+  final hasSuffix = RegExp(r'[kKmM]').hasMatch(lastChar);
 
-  number = double.parse(match.group(0) ?? "");
-  switch (suffix.toLowerCase()) {
-    case 'k':
-      number *= 1000;
-    case 'm':
-      number *= 1000000;
+  double number = double.parse(match.group(0)!);
+
+  if (hasSuffix) {
+    switch (lastChar.toLowerCase()) {
+      case 'k':
+        number *= 1000;
+        break;
+      case 'm':
+        number *= 1000000;
+        break;
+    }
   }
 
-  return number.toInt();
+  return hasDecimal ? number : number.toInt();
 }
 
 Future<List<http.Response>> getPages(List<String> urls) async {

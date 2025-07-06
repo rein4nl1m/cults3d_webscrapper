@@ -3,13 +3,17 @@ class CultsItem {
   final int views;
   final int likes;
   final int downloads;
+  final double price;
 
   CultsItem({
     required this.title,
     required this.views,
     required this.likes,
     required this.downloads,
+    required this.price,
   });
+
+  double get likesPerView => (likes / views).ceilToDouble();
 
   factory CultsItem.fromMap(Map<String, dynamic> map) {
     return CultsItem(
@@ -17,6 +21,7 @@ class CultsItem {
       views: map['views'] as int? ?? 0,
       likes: map['likes'] as int? ?? 0,
       downloads: map['downloads'] as int? ?? 0,
+      price: map['price'] as double? ?? 0,
     );
   }
 
@@ -26,12 +31,13 @@ class CultsItem {
       'views': views,
       'likes': likes,
       'downloads': downloads,
+      'price': price,
     };
   }
 
   @override
   String toString() {
-    return 'CultsItem(title: $title, views: $views, likes: $likes, downloads: $downloads)';
+    return 'CultsItem(title: $title, views: $views, likes: $likes, downloads: $downloads, price: $price)';
   }
 
   String toStringPerParam(String param) {
@@ -42,6 +48,8 @@ class CultsItem {
         return 'CultsItem(title: $title, likes: $likes)';
       case 'downloads':
         return 'CultsItem(title: $title, downloads: $downloads)';
+      case 'price':
+        return 'CultsItem(title: $title, price: $price)';
       default:
         return toString();
     }
@@ -54,7 +62,8 @@ class CultsItem {
     return other.title == title &&
         other.views == views &&
         other.likes == likes &&
-        other.downloads == downloads;
+        other.downloads == downloads &&
+        other.price == price;
   }
 
   @override
@@ -62,6 +71,7 @@ class CultsItem {
     return title.hashCode ^
         views.hashCode ^
         likes.hashCode ^
-        downloads.hashCode;
+        downloads.hashCode ^
+        price.hashCode;
   }
 }

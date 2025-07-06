@@ -7,36 +7,51 @@ import '../lib/cults3d_collection_webscrapper.dart' as collection;
 final _baseUrl = "https://cults3d.com";
 final _path = "/en/design-collections/ManabunLab/low-poly-magnet-puzzle";
 
-void printTop3Items(List<CultsItem> items, String param) {
-  items.sort((a, b) => b.toMap()[param] - a.toMap()[param]);
-  items.take(3).forEach((e) => print(e.toStringPerParam(param)));
+void printTopNItems(List<CultsItem> items, String param, [int range = 5]) {
+  if (param == "price") {
+    items.sort((a, b) =>
+        (a.toMap()[param] as double).compareTo(b.toMap()[param] as double));
+  } else {
+    items.sort((a, b) => b.toMap()[param] - a.toMap()[param]);
+  }
+  items.take(range).forEach((e) => print(e.toStringPerParam(param)));
 }
 
 void main(List<String> arguments) async {
-  final url = _baseUrl + _path; //arguments.first;
+  String url = "";
+  if (arguments.isNotEmpty) {
+    url = arguments[0] + arguments[1];
+  } else {
+    url = _baseUrl + _path;
+  }
 
   collection.scrapeCollectionCults3D(url).then((itemUrls) async {
     items.scrapeItemsCults3D(itemUrls).then((items) {
       print('\nPer Views');
-      printTop3Items(items, 'views');
+      printTopNItems(items, 'views');
       print('\nPer Likes');
-      printTop3Items(items, 'likes');
+      printTopNItems(items, 'likes');
       print('\nPer Downloads');
-      printTop3Items(items, 'downloads');
+      printTopNItems(items, 'downloads');
+      print('\nPer Price');
+      printTopNItems(items, 'price');
 
-      print('\nTop 3 Per All');
+      print('\nTop 5 Per All (downloads > views > likes > price)');
       items.sort(
         (a, b) {
+          int downloadsComparison = b.downloads.compareTo(a.downloads);
+          if (downloadsComparison != 0) return downloadsComparison;
+
           int viewsComparison = b.views.compareTo(a.views);
           if (viewsComparison != 0) return viewsComparison;
 
           int likesComparison = b.likes.compareTo(a.likes);
           if (likesComparison != 0) return likesComparison;
 
-          return b.downloads.compareTo(a.downloads);
+          return a.price.compareTo(b.price);
         },
       );
-      items.take(3).forEach(print);
+      items.take(5).forEach(print);
     });
   });
 }
